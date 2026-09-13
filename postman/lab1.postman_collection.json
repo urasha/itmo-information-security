@@ -1,0 +1,176 @@
+{
+  "info": {
+    "_postman_id": "b1a72591-9b3c-4f24-a1d9-99a7d1d01226",
+    "name": "Information Security — Laboratory 1",
+    "description": "Коллекция для демонстрации API заметок. Выполняйте запросы сверху вниз: успешный вход сохраняет accessToken, создание заметки сохраняет aliceNoteId. Пароли задаются в выбранном окружении и не экспортируются в этот файл.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "aliceNoteId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Успешный вход (alice)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{aliceUsername}}\",\n  \"password\": \"{{alicePassword}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/auth/login",
+        "description": "Ожидается 200 и JSON { accessToken, tokenType }. Тест сохраняет accessToken в переменную коллекции."
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('Статус 200', function () { pm.response.to.have.status(200); });",
+          "const body = pm.response.json();",
+          "pm.test('Ответ содержит accessToken', function () { pm.expect(body.accessToken).to.be.a('string').and.not.empty; });",
+          "pm.collectionVariables.set('accessToken', body.accessToken);"
+        ] }
+      }]
+    },
+    {
+      "name": "02. Неверный пароль",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{aliceUsername}}\",\n  \"password\": \"wrong-password\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/auth/login",
+        "description": "Проверяет, что неверные учётные данные не выдают токен."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Статус 401', function () { pm.response.to.have.status(401); });"] } }]
+    },
+    {
+      "name": "03. Чтение без токена",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/data",
+        "description": "Защищённый маршрут без заголовка Authorization."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Статус 401', function () { pm.response.to.have.status(401); });"] } }]
+    },
+    {
+      "name": "04. Чтение с испорченным токеном",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer not-a-valid-jwt" }],
+        "url": "{{baseUrl}}/api/data",
+        "description": "Проверяет отклонение JWT с неверной подписью/форматом."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Статус 401', function () { pm.response.to.have.status(401); });"] } }]
+    },
+    {
+      "name": "05. Создание заметки (alice)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Первая заметка Alice\",\n  \"content\": \"Данные хранятся в H2\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/data",
+        "description": "Создаёт заметку от имени пользователя, указанного в JWT. ownerId не передаётся клиентом."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 201', function () { pm.response.to.have.status(201); });",
+        "const body = pm.response.json();",
+        "pm.test('Возвращена созданная заметка', function () { pm.expect(body.id).to.exist; pm.expect(body.title).to.eql('Первая заметка Alice'); });",
+        "pm.collectionVariables.set('aliceNoteId', String(body.id));"
+      ] } }]
+    },
+    {
+      "name": "06. Чтение своих заметок (alice)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/api/data",
+        "description": "Ожидается 200 и JSON-массив объектов { id, title, content, createdAt }."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 200', function () { pm.response.to.have.status(200); });",
+        "const body = pm.response.json();",
+        "pm.test('Ответ является массивом заметок', function () { pm.expect(body).to.be.an('array'); });",
+        "pm.test('Созданная заметка присутствует', function () { pm.expect(body.some(note => String(note.id) === pm.collectionVariables.get('aliceNoteId'))).to.be.true; });"
+      ] } }]
+    },
+    {
+      "name": "07. SQL injection в логине",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"' OR '1'='1' --\",\n  \"password\": \"anything\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/auth/login",
+        "description": "Параметризованный запрос не должен позволить обойти аутентификацию."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Статус 401', function () { pm.response.to.have.status(401); });"] } }]
+    },
+    {
+      "name": "08. XSS: экранирование в ответе",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"<script>alert('xss')</script>\",\n  \"content\": \"<img src=x onerror=alert('xss')>\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/data",
+        "description": "Для лабораторной сервер возвращает текст, экранированный для HTML-контекста."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 201', function () { pm.response.to.have.status(201); });",
+        "const body = pm.response.json();",
+        "pm.test('Теги экранированы', function () { pm.expect(body.title).to.include('&lt;script&gt;'); pm.expect(body.content).to.include('&lt;img'); });"
+      ] } }]
+    },
+    {
+      "name": "09. Вход вторым пользователем (bob)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{bobUsername}}\",\n  \"password\": \"{{bobPassword}}\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/auth/login",
+        "description": "Заменяет accessToken на токен Bob для следующего сценария изоляции."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 200', function () { pm.response.to.have.status(200); });",
+        "const body = pm.response.json();",
+        "pm.collectionVariables.set('accessToken', body.accessToken);"
+      ] } }]
+    },
+    {
+      "name": "10. Bob не видит заметку Alice",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/api/data",
+        "description": "После входа Bob ответ не должен содержать id заметки, созданной Alice в запросе 05."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 200', function () { pm.response.to.have.status(200); });",
+        "const body = pm.response.json();",
+        "pm.test('Чужая заметка отсутствует', function () { pm.expect(body.some(note => String(note.id) === pm.collectionVariables.get('aliceNoteId'))).to.be.false; });"
+      ] } }]
+    },
+    {
+      "name": "11. Некорректные данные заметки",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"\",\n  \"content\": \"\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/api/data",
+        "description": "Проверяет Bean Validation и единый формат ошибки."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Статус 400', function () { pm.response.to.have.status(400); });",
+        "const body = pm.response.json();",
+        "pm.test('Единый формат ошибки', function () { pm.expect(body.code).to.exist; pm.expect(body.message).to.exist; });"
+      ] } }]
+    }
+  ]
+}
