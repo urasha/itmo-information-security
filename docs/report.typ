@@ -13,7 +13,7 @@
 
 #v(32mm)
 #align(center)[
-  #text(size: 15pt)[Работа № 1]
+  #text(size: 15pt, weight: "bold")[Работа № 1]
 
   #text(size: 15pt, weight: "bold")[«Разработка защищенного REST API с интеграцией в CI/CD»]
 
