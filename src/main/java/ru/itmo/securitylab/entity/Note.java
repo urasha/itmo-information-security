@@ -11,9 +11,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "note", indexes = @Index(name = "idx_note_owner", columnList = "owner_id"))
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,17 +37,10 @@ public class Note {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected Note() {}
-
     public Note(User owner, String title, String content, Instant createdAt) {
         this.owner = owner;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
     }
-
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getContent() { return content; }
-    public Instant getCreatedAt() { return createdAt; }
 }

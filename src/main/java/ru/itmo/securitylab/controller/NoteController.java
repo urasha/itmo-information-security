@@ -2,6 +2,7 @@ package ru.itmo.securitylab.controller;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +17,9 @@ import ru.itmo.securitylab.service.NoteService;
 
 @RestController
 @RequestMapping("/api/data")
+@RequiredArgsConstructor
 public class NoteController {
     private final NoteService notes;
-
-    public NoteController(NoteService notes) {
-        this.notes = notes;
-    }
 
     @GetMapping
     public List<NoteResponse> list(JwtAuthenticationToken authentication) {

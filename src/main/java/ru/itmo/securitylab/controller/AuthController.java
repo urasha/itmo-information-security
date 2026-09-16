@@ -1,6 +1,7 @@
 package ru.itmo.securitylab.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,12 +13,9 @@ import ru.itmo.securitylab.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
     private final AuthService auth;
-
-    public AuthController(AuthService auth) {
-        this.auth = auth;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {

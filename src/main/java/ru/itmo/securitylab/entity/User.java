@@ -6,9 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "app_user")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,13 +25,8 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    protected User() {}
-
     public User(String username, String passwordHash) {
         this.username = username;
         this.passwordHash = passwordHash;
     }
-
-    public Long getId() { return id; }
-    public String getPasswordHash() { return passwordHash; }
 }

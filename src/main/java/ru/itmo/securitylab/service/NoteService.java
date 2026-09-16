@@ -2,6 +2,7 @@ package ru.itmo.securitylab.service;
 
 import java.time.Instant;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.securitylab.dto.CreateNoteRequest;
@@ -14,16 +15,11 @@ import ru.itmo.securitylab.repository.NoteRepository;
 import ru.itmo.securitylab.repository.UserRepository;
 
 @Service
+@RequiredArgsConstructor
 public class NoteService {
     private final NoteRepository notes;
     private final UserRepository users;
     private final NoteMapper mapper;
-
-    public NoteService(NoteRepository notes, UserRepository users, NoteMapper mapper) {
-        this.notes = notes;
-        this.users = users;
-        this.mapper = mapper;
-    }
 
     @Transactional(readOnly = true)
     public List<NoteResponse> list(Long userId) {
