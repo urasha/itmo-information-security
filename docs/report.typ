@@ -11,7 +11,7 @@
   «Национальный исследовательский университет ИТМО»
 ]
 
-#v(32mm)
+#v(42mm)
 #align(center)[
   #text(size: 15pt, weight: "bold")[Работа № 1]
 
@@ -20,7 +20,7 @@
   по дисциплине «Информационная безопасность»
 ]
 
-#v(45mm)
+#v(50mm)
 #grid(
     columns: (2fr, 3fr),
     column-gutter: 1cm,
@@ -41,7 +41,7 @@
 )
 
 
-#v(54mm)
+#v(52mm)
 #align(center)[Санкт-Петербург 2026]
 
 #pagebreak()
@@ -161,4 +161,4 @@ Content-Type: application/json
 
 = Ссылка на последний успешный запуск pipeline
 
-#link("https://github.com/urasha/itmo-information-security/actions/runs/34751476757")[https://github.com/urasha/itmo-information-security/actions/runs/34751476757]
+#link("https://github.com/urasha/itmo-information-security/actions/runs/35114651411")[https://github.com/urasha/itmo-information-security/actions/runs/35114651411]
